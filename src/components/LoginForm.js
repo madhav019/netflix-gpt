@@ -9,6 +9,8 @@ const LoginForm = () => {
     setIsSignIn((prev) => !prev);
   };
 
+  const handleSubmitButton = () => {};
+
   return (
     <div className="absolute bg-black sm:w-[450px] p-14 mt-[5vh] sm:mx-auto flex flex-col gap-10 right-0 left-0 lg:bottom-0 rounded-t-md bg-opacity-70">
       <h1 className="text-white font-bold text-3xl">
@@ -34,7 +36,10 @@ const LoginForm = () => {
           className="h-12 p-4 rounded-md bg-black bg-opacity-30 border border-slate-50 text-white"
         />
 
-        <button className="text-white bg-red-600 h-10 rounded-md hover:bg-opacity-70 active:opacity-80">
+        <button
+          className="text-white bg-red-600 h-10 rounded-md hover:bg-opacity-70 active:opacity-80"
+          onClick={handleSubmitButton}
+        >
           Sign {isSignIn ? "In" : "Up"}
         </button>
 
@@ -60,6 +65,7 @@ const LoginForm = () => {
                 />
                 <img
                   src={Checked}
+                  alt="checked"
                   className="absolute bg-white border border-white w-4 h-4 opacity-0 peer-checked:opacity-100 hover:opacity-70 transition-opacity duration-300 ease-in-out cursor-pointer"
                 />
               </div>
