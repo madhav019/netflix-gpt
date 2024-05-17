@@ -5,7 +5,7 @@ import LoginForm from "../components/LoginForm";
 
 const Login = () => {
   return (
-    <div className="relative bg-black h-[100vh] w-[100vw]">
+    <div className="relative bg-black h-[100vh] w-[100vw] overflow-x-hidden">
       <Header />
 
       <img

@@ -1,41 +1,165 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Checked from "../static/icons/checked.svg";
+import { emailIsValid, passwordIsValid } from "../utils/FormValidations";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { auth } from "../utils/Firebase";
+import { getErrorMessage } from "../utils/ErrorMessages";
 
 const LoginForm = () => {
+  const navigate = useNavigate();
+
   const [isSignIn, setIsSignIn] = useState(true);
+  const [error, setError] = useState("");
+  const [errorState, setErrorState] = useState({
+    name: null,
+    email: null,
+    password: null,
+  });
+
+  /*************************************************************************/
+
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+
+  /*************************************************************************/
+
+  const isFormValid = () => {
+    const isValid = Object.keys(errorState).reduce(
+      (acc, val) => !errorState[val] && acc,
+      true
+    );
+
+    const notEmpty = !!(
+      emailRef.current.value &&
+      passwordRef.current.value &&
+      (!isSignIn ? nameRef.current.value : true)
+    );
+
+    return isValid && notEmpty;
+  };
 
   const toggleForm = () => {
     setIsSignIn((prev) => !prev);
   };
 
-  const handleSubmitButton = () => {};
+  const handleSubmitButton = () => {
+    setError("");
+
+    if (!isFormValid()) return;
+
+    if (isSignIn) {
+      signInWithEmailAndPassword(
+        auth,
+        emailRef.current.value,
+        passwordRef.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          navigate("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setError(getErrorMessage(errorCode));
+        });
+    } else {
+      createUserWithEmailAndPassword(
+        auth,
+        emailRef.current.value,
+        passwordRef.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          navigate("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setError(getErrorMessage(errorCode));
+        });
+    }
+  };
+
+  const validateEmail = () => {
+    setErrorState((prev) => {
+      return { ...prev, email: emailIsValid(emailRef.current.value) };
+    });
+  };
+
+  const validatePassword = () => {
+    setErrorState((prev) => {
+      return { ...prev, password: passwordIsValid(passwordRef.current.value) };
+    });
+  };
+
+  /*************************************************************************/
 
   return (
-    <div className="absolute bg-black sm:w-[450px] p-14 mt-[5vh] sm:mx-auto flex flex-col gap-10 right-0 left-0 lg:bottom-0 rounded-t-md bg-opacity-70">
+    <div className="absolute bg-black sm:w-[450px] p-10 mt-[5vh] sm:mx-auto flex flex-col gap-6 right-0 left-0 lg:bottom-0 rounded-md bg-opacity-70">
       <h1 className="text-white font-bold text-3xl">
         Sign {isSignIn ? "In" : "Up"}
       </h1>
 
+      {error && (
+        <div className="bg-yellow-600 text-white p-4 rounded-md ">{error}</div>
+      )}
+
       <div className="flex flex-col gap-4">
         {!isSignIn && (
-          <input
-            type="text"
-            placeholder="Name"
-            className="h-12 p-4 rounded-md bg-black bg-opacity-30 border border-slate-50 text-white"
-          />
+          <div className="w-full flex flex-col gap-1">
+            <input
+              ref={nameRef}
+              type="text"
+              placeholder="Name"
+              className="h-12 p-4 rounded-md bg-black bg-opacity-30 border border-slate-50 text-white"
+            />
+          </div>
         )}
-        <input
-          type="text"
-          placeholder="Email Address"
-          className="h-12 p-4 rounded-md bg-black bg-opacity-30 border border-slate-50 text-white"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="h-12 p-4 rounded-md bg-black bg-opacity-30 border border-slate-50 text-white"
-        />
-
+        <div className="w-full flex flex-col gap-1">
+          <input
+            name="email"
+            ref={emailRef}
+            type="text"
+            placeholder="Email Address"
+            className={`h-12 p-4 rounded-md bg-black bg-opacity-30 border text-white ${
+              errorState.email ? "border-red-700" : "border-slate-50"
+            }`}
+            onBlur={validateEmail}
+            onFocus={() =>
+              setErrorState((prev) => {
+                return { ...prev, email: null };
+              })
+            }
+          />
+          {!!errorState.email && (
+            <p className="text-red-700">{errorState.email}</p>
+          )}
+        </div>
+        <div className="w-full flex flex-col gap-1">
+          <input
+            name="password"
+            ref={passwordRef}
+            type="password"
+            placeholder="Password"
+            className={`h-12 p-4 rounded-md bg-black bg-opacity-30 border text-white ${
+              errorState.password ? "border-red-700" : "border-slate-50"
+            }`}
+            onBlur={validatePassword}
+            onFocus={() =>
+              setErrorState((prev) => {
+                return { ...prev, password: null };
+              })
+            }
+          />
+          {!!errorState.password && (
+            <p className="text-red-700">{errorState.password}</p>
+          )}
+        </div>
         <button
           className="text-white bg-red-600 h-10 rounded-md hover:bg-opacity-70 active:opacity-80"
           onClick={handleSubmitButton}
