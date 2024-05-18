@@ -5,12 +5,16 @@ import { emailIsValid, passwordIsValid } from "../utils/FormValidations";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "../utils/Firebase";
 import { getErrorMessage } from "../utils/ErrorMessages";
+import { useDispatch, useSelector } from "react-redux";
+import { addUser } from "../store/slices/user-slice";
 
 const LoginForm = () => {
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const userInfo = useSelector((store) => store.user);
 
   const [isSignIn, setIsSignIn] = useState(true);
   const [error, setError] = useState("");
@@ -60,7 +64,6 @@ const LoginForm = () => {
       )
         .then((userCredential) => {
           const user = userCredential.user;
-          navigate("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -75,7 +78,17 @@ const LoginForm = () => {
       )
         .then((userCredential) => {
           const user = userCredential.user;
-          navigate("/browse");
+          return updateProfile(user, {
+            displayName: nameRef.current.value,
+          });
+        })
+        .then(() => {
+          dispatch(
+            addUser({
+              displayName: nameRef.current.value,
+              ...userInfo,
+            })
+          );
         })
         .catch((error) => {
           const errorCode = error.code;
